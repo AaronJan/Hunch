@@ -1,21 +1,21 @@
 package hunch
 
 import (
+	"context"
 	"fmt"
 	"testing"
-	"context"
 )
 
 func BenchmarkBaselineHello(b *testing.B) {
-    for i := 0; i < b.N; i++ {
-        fmt.Sprintf("hello")
-    }
+	for i := 0; i < b.N; i++ {
+		fmt.Sprintf("hello")
+	}
 }
 
 func BenchmarkTakeWithFiveExecsThatNeedsOne(b *testing.B) {
 	rootCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-		
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Take(
@@ -43,7 +43,7 @@ func BenchmarkTakeWithFiveExecsThatNeedsOne(b *testing.B) {
 func BenchmarkTakeWithFiveExecsThatNeedsFive(b *testing.B) {
 	rootCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-		
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Take(
@@ -71,7 +71,7 @@ func BenchmarkTakeWithFiveExecsThatNeedsFive(b *testing.B) {
 func BenchmarkAllWithFiveExecs(b *testing.B) {
 	rootCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-		
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		All(
