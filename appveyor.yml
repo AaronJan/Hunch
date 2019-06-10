@@ -1,6 +1,8 @@
+version: "{build}"
+
 build: off
 
-clone_folder: /usr/$project
+clone_folder: /usr/hunch
 
 environment:
   GOPATH: /usr/go/
