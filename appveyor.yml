@@ -1,3 +1,5 @@
+build: off
+
 clone_folder: /usr/$project
 
 environment:
