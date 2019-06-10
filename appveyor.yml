@@ -1,0 +1,12 @@
+clone_folder: /usr/$project
+
+environment:
+  GOPATH: /usr/go/
+
+stack: go 1.10, go 1.11, go 1.12
+
+before_test:
+  - go vet ./...
+
+test_script:
+  - go test ./...
