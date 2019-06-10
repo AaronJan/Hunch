@@ -27,173 +27,179 @@ func isSlice(v interface{}) bool {
 	return rv.Kind() == reflect.Slice
 }
 
-func TestTakeShouldWorksAsExpected(t *testing.T) {
-	t.Parallel()
+func TestTake(t *testing.T) {
+	t.Run("Should works as expected", func(t *testing.T) {
+		t.Parallel()
 
-	rootCtx := context.Background()
-	ch := make(chan MultiReturns)
-	go func() {
-		r, err := Take(
-			rootCtx,
-			3,
-			func(ctx context.Context) (interface{}, error) {
-				time.Sleep(200 * time.Millisecond)
-				return 1, nil
-			},
-			func(ctx context.Context) (interface{}, error) {
-				time.Sleep(100 * time.Millisecond)
-				return 2, nil
-			},
-			func(ctx context.Context) (interface{}, error) {
-				<-time.After(300 * time.Millisecond)
-				return 3, nil
-			},
-		)
-
-		ch <- MultiReturns{r, err}
-		close(ch)
-	}()
-
-	r := <-ch
-	if r.Err != nil {
-		t.Errorf("Gets an error: %v\n", r.Err)
-	}
-
-	rs := []int{}
-	for _, v := range r.Val.([]interface{}) {
-		rs = append(rs, v.(int))
-	}
-
-	changes := diff.Ints(rs, []int{2, 1, 3})
-	if len(changes) != 0 {
-		t.Errorf("Execution order is wrong, gets: %+v\n", rs)
-	}
-}
-
-func TestTakeShouldLimitResults(t *testing.T) {
-	t.Parallel()
-
-	rootCtx := context.Background()
-	ch := make(chan MultiReturns)
-	go func() {
-		r, err := Take(
-			rootCtx,
-			2,
-			func(ctx context.Context) (interface{}, error) {
-				time.Sleep(200 * time.Millisecond)
-				return 1, nil
-			},
-			func(ctx context.Context) (interface{}, error) {
-				time.Sleep(100 * time.Millisecond)
-				return 2, nil
-			},
-			func(ctx context.Context) (interface{}, error) {
-				<-time.After(300 * time.Millisecond)
-				return 3, nil
-			},
-		)
-
-		ch <- MultiReturns{r, err}
-		close(ch)
-	}()
-
-	r := <-ch
-	rs := []int{}
-	for _, v := range r.Val.([]interface{}) {
-		rs = append(rs, v.(int))
-	}
-
-	changes := diff.Ints(rs, []int{2, 1})
-	if len(changes) != 0 {
-		t.Errorf("Execution order is wrong, gets: %+v\n", rs)
-	}
-}
-
-func TestTakeWhenRootCtxCanceled(t *testing.T) {
-	t.Parallel()
-
-	rootCtx, cancel := context.WithCancel(context.Background())
-	ch := make(chan MultiReturns)
-	go func() {
-		r, err := Take(
-			rootCtx,
-			3,
-			func(ctx context.Context) (interface{}, error) {
-				time.Sleep(100 * time.Millisecond)
-				return 1, nil
-			},
-			func(ctx context.Context) (interface{}, error) {
-				time.Sleep(200 * time.Millisecond)
-				return 2, nil
-			},
-			func(ctx context.Context) (interface{}, error) {
-				select {
-				case <-ctx.Done():
-					return nil, AppError{}
-				case <-time.After(300 * time.Millisecond):
+		rootCtx := context.Background()
+		ch := make(chan MultiReturns)
+		go func() {
+			r, err := Take(
+				rootCtx,
+				3,
+				func(ctx context.Context) (interface{}, error) {
+					time.Sleep(200 * time.Millisecond)
+					return 1, nil
+				},
+				func(ctx context.Context) (interface{}, error) {
+					time.Sleep(100 * time.Millisecond)
+					return 2, nil
+				},
+				func(ctx context.Context) (interface{}, error) {
+					<-time.After(300 * time.Millisecond)
 					return 3, nil
-				}
-			},
-		)
+				},
+			)
 
-		ch <- MultiReturns{r, err}
-		close(ch)
-	}()
+			ch <- MultiReturns{r, err}
+			close(ch)
+		}()
 
-	go func() {
-		time.Sleep(150 * time.Millisecond)
-		cancel()
-	}()
+		r := <-ch
+		if r.Err != nil {
+			t.Errorf("Gets an error: %v\n", r.Err)
+		}
 
-	r := <-ch
-	if !isSlice(r.Val) || len(r.Val.([]interface{})) != 0 {
-		t.Errorf("Return Value should be default, gets: \"%v\"\n", r.Val)
-	}
-	if r.Err == nil {
-		t.Errorf("Should returns an Error, gets `nil`\n")
-	}
-}
+		rs := []int{}
+		for _, v := range r.Val.([]interface{}) {
+			rs = append(rs, v.(int))
+		}
 
-func TestTakeWithoutDelay(t *testing.T) {
-	t.Parallel()
+		changes := diff.Ints(rs, []int{2, 1, 3})
+		if len(changes) != 0 {
+			t.Errorf("Execution order is wrong, gets: %+v\n", rs)
+		}
+	})
 
-	rootCtx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	ch := make(chan MultiReturns)
-	go func() {
-		r, err := Take(
-			rootCtx,
-			3,
-			func(ctx context.Context) (interface{}, error) {
-				return 1, nil
-			},
-			func(ctx context.Context) (interface{}, error) {
-				return 2, nil
-			},
-			func(ctx context.Context) (interface{}, error) {
-				return 3, nil
-			},
-		)
+	t.Run("Should limit results", func(t *testing.T) {
+		t.Parallel()
 
-		ch <- MultiReturns{r, err}
-		close(ch)
-	}()
+		rootCtx := context.Background()
+		ch := make(chan MultiReturns)
+		go func() {
+			r, err := Take(
+				rootCtx,
+				2,
+				func(ctx context.Context) (interface{}, error) {
+					time.Sleep(200 * time.Millisecond)
+					return 1, nil
+				},
+				func(ctx context.Context) (interface{}, error) {
+					time.Sleep(100 * time.Millisecond)
+					return 2, nil
+				},
+				func(ctx context.Context) (interface{}, error) {
+					<-time.After(300 * time.Millisecond)
+					return 3, nil
+				},
+			)
 
-	r := <-ch
-	if r.Err != nil {
-		t.Errorf("Gets an error: %v\n", r.Err)
-	}
+			ch <- MultiReturns{r, err}
+			close(ch)
+		}()
 
-	rs := []int{}
-	for _, v := range r.Val.([]interface{}) {
-		rs = append(rs, v.(int))
-	}
+		r := <-ch
+		rs := []int{}
+		for _, v := range r.Val.([]interface{}) {
+			rs = append(rs, v.(int))
+		}
+
+		changes := diff.Ints(rs, []int{2, 1})
+		if len(changes) != 0 {
+			t.Errorf("Execution order is wrong, gets: %+v\n", rs)
+		}
+	})
+
+	t.Run("Should cancel tasks when root context canceled",
+		func(t *testing.T) {
+			t.Parallel()
+
+			rootCtx, cancel := context.WithCancel(context.Background())
+			ch := make(chan MultiReturns)
+			go func() {
+				r, err := Take(
+					rootCtx,
+					3,
+					func(ctx context.Context) (interface{}, error) {
+						time.Sleep(100 * time.Millisecond)
+						return 1, nil
+					},
+					func(ctx context.Context) (interface{}, error) {
+						time.Sleep(200 * time.Millisecond)
+						return 2, nil
+					},
+					func(ctx context.Context) (interface{}, error) {
+						select {
+						case <-ctx.Done():
+							return nil, AppError{}
+						case <-time.After(300 * time.Millisecond):
+							return 3, nil
+						}
+					},
+				)
+
+				ch <- MultiReturns{r, err}
+				close(ch)
+			}()
+
+			go func() {
+				time.Sleep(150 * time.Millisecond)
+				cancel()
+			}()
+
+			r := <-ch
+			if !isSlice(r.Val) || len(r.Val.([]interface{})) != 0 {
+				t.Errorf("Return Value should be default, gets: \"%v\"\n", r.Val)
+			}
+			if r.Err == nil {
+				t.Errorf("Should returns an Error, gets `nil`\n")
+			}
+		},
+	)
 
 	// FIXME:
-	// changes := diff.Ints(rs, []int{2, 1, 3})
-	// if len(changes) != 0 {
-	// 	t.Errorf("Execution order is wrong, gets: %+v\n", rs)
-	// }
+	t.Run("Sub tasks without delay", func(t *testing.T) {
+		t.Parallel()
+
+		rootCtx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		ch := make(chan MultiReturns)
+		go func() {
+			r, err := Take(
+				rootCtx,
+				3,
+				func(ctx context.Context) (interface{}, error) {
+					return 1, nil
+				},
+				func(ctx context.Context) (interface{}, error) {
+					return 2, nil
+				},
+				func(ctx context.Context) (interface{}, error) {
+					return 3, nil
+				},
+			)
+
+			ch <- MultiReturns{r, err}
+			close(ch)
+		}()
+
+		r := <-ch
+		if r.Err != nil {
+			t.Errorf("Gets an error: %v\n", r.Err)
+		}
+
+		rs := []int{}
+		for _, v := range r.Val.([]interface{}) {
+			rs = append(rs, v.(int))
+		}
+
+		// FIXME:
+		// changes := diff.Ints(rs, []int{2, 1, 3})
+		// if len(changes) != 0 {
+		// 	t.Errorf("Execution order is wrong, gets: %+v\n", rs)
+		// }
+	})
+
 }
 
 func TestAllShouldWorksAsExpected(t *testing.T) {
