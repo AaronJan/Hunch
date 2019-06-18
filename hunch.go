@@ -1,4 +1,4 @@
-// Package hunch provides functions that makes asynchronous flow control more intuitive.
+// Package hunch provides functions like: `All`, `First`, `Retry`, `Waterfall` etc., that makes asynchronous flow control more intuitive.
 package hunch
 
 import (

@@ -1,18 +1,35 @@
+<a href="https://github.com/AaronJan/Hunch">
+	<img width="200" src="https://user-images.githubusercontent.com/4630940/59684078-ea9d8c80-920b-11e9-9c99-85051dcb8a04.jpg" alt="Housekeeper" title="Hunch" align="right"/>
+</a>
+
 # Hunch
 
-Hunch provides functions that makes asynchronous flow control more intuitive.
+Hunch provides functions like: `All`, `First`, `Retry`, `Waterfall` etc., that makes asynchronous flow control more intuitive.
+
+## About Hunch
+
+Go have several concurrency patterns, here're some articles:
+
+* https://blog.golang.org/pipelines
+* https://blog.golang.org/context
+* https://blog.golang.org/go-concurrency-patterns-timing-out-and
+* https://blog.golang.org/advanced-go-concurrency-patterns
+
+But nowadays, using the `context` package is the most powerful pattern.
+
+So base on `context`, Hunch provides functions that can help you deal with complex asynchronous logics with ease.
 
 ## Usage
 
 ### Installation
 
-#### `go get` way
+#### `go get`
 
 ```shell
 $ go get -u -v github.com/aaronjan/hunch
 ```
 
-#### `go mod` way
+#### `go mod` (Recommended)
 
 ```go
 import "github.com/aaronjan/hunch"
@@ -179,7 +196,7 @@ Retry attempts to get a value from an Executable instead of an Error. It will ke
 
 ## Credits
 
-Heavily inspired by [ReactiveX](http://reactivex.io/).
+Heavily inspired by [Async](https://github.com/caolan/async/) and [ReactiveX](http://reactivex.io/).
 
 ## Licence
 
