@@ -2,6 +2,7 @@
 	<img width="160" src="https://user-images.githubusercontent.com/4630940/59684078-ea9d8c80-920b-11e9-9c99-85051dcb8a04.jpg" alt="Housekeeper" title="Hunch" align="right"/>
 </a>
 
+[![Build status](https://ci.appveyor.com/api/projects/status/co97gxwpcewrebip/branch/master?svg=true)](https://ci.appveyor.com/project/AaronJan/hunch/branch/master)
 [![codecov](https://codecov.io/gh/AaronJan/Hunch/branch/master/graph/badge.svg)](https://codecov.io/gh/AaronJan/Hunch)
 
 # Hunch
@@ -193,7 +194,15 @@ Retry attempts to get a value from an Executable instead of an Error. It will ke
 ##### Examples
 
 ```go
-// TODO
+r, err := hunch.Retry(
+    ctx,
+    10,
+    func(ctx context.Context) (interface{}, error) {
+        rs, err := api.GetResults()
+
+        return rs, err
+    },
+)
 ```
 
 ## Credits
