@@ -2,7 +2,9 @@ package hunch
 
 import (
 	"context"
+	"fmt"
 	"reflect"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -440,4 +442,103 @@ func TestWaterfallShouldWorksAsExpected(t *testing.T) {
 	if r.Val.(int) != 3 {
 		t.Errorf("Expect \"3\", but gets: \"%v\"\n", r.Val)
 	}
+}
+
+func TestRetry(t *testing.T) {
+	t.Run("Should returns results on success", func(t *testing.T) {
+		t.Parallel()
+
+		rootCtx := context.Background()
+		ch := make(chan MultiReturns)
+		go func() {
+			r, err := Retry(
+				rootCtx,
+				3,
+				func(ctx context.Context) (interface{}, error) {
+					time.Sleep(200 * time.Millisecond)
+					return 1, nil
+				},
+			)
+
+			ch <- MultiReturns{r, err}
+			close(ch)
+		}()
+
+		r := <-ch
+		if r.Err != nil {
+			t.Errorf("Gets an error: %v\n", r.Err)
+		}
+
+		if r.Val != 1 {
+			t.Errorf("Should gets `1`, gets: %+v instead\n", r.Val)
+		}
+	})
+
+	t.Run("Should returns results after failing several times", func(t *testing.T) {
+		t.Parallel()
+
+		var times int32
+		rootCtx := context.Background()
+		ch := make(chan MultiReturns)
+		go func() {
+			r, err := Retry(
+				rootCtx,
+				3,
+				func(ctx context.Context) (interface{}, error) {
+					atomic.AddInt32(&times, 1)
+					if atomic.LoadInt32(&times) >= 2 {
+						return 1, nil
+					}
+					return nil, fmt.Errorf("err")
+				},
+			)
+
+			ch <- MultiReturns{r, err}
+			close(ch)
+		}()
+
+		r := <-ch
+		if r.Err != nil {
+			t.Errorf("Gets an error: %v\n", r.Err)
+		}
+
+		if times != 2 {
+			t.Errorf("Should tried 2 times, instead of %v\n", times)
+		}
+
+		if r.Val != 1 {
+			t.Errorf("Should gets `1`, gets: %+v instead\n", r.Val)
+		}
+	})
+
+	t.Run("Should keep retrying until the limit is reached", func(t *testing.T) {
+		t.Parallel()
+
+		var times int32
+		rootCtx := context.Background()
+		ch := make(chan MultiReturns)
+		go func() {
+
+			r, err := Retry(
+				rootCtx,
+				3,
+				func(ctx context.Context) (interface{}, error) {
+					atomic.AddInt32(&times, 1)
+					return nil, fmt.Errorf("err")
+				},
+			)
+
+			ch <- MultiReturns{r, err}
+			close(ch)
+		}()
+
+		r := <-ch
+		if r.Err == nil {
+			t.Errorf("Should gets an error")
+		}
+
+		if times != 3 {
+			t.Errorf("Should tried 3 times, instead of: %+v\n", times)
+		}
+	})
 }
