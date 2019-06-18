@@ -2,12 +2,9 @@ package hunch
 
 import (
 	"context"
-
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/mb0/diff"
 )
 
 type AppError struct {
@@ -65,8 +62,8 @@ func TestTake(t *testing.T) {
 			rs = append(rs, v.(int))
 		}
 
-		changes := diff.Ints(rs, []int{2, 1, 3})
-		if len(changes) != 0 {
+		equal := reflect.DeepEqual([]int{2, 1, 3}, rs)
+		if !equal {
 			t.Errorf("Execution order is wrong, gets: %+v\n", rs)
 		}
 	})
@@ -104,8 +101,8 @@ func TestTake(t *testing.T) {
 			rs = append(rs, v.(int))
 		}
 
-		changes := diff.Ints(rs, []int{2, 1})
-		if len(changes) != 0 {
+		equal := reflect.DeepEqual([]int{2, 1}, rs)
+		if !equal {
 			t.Errorf("Execution order is wrong, gets: %+v\n", rs)
 		}
 	})
@@ -193,11 +190,7 @@ func TestTake(t *testing.T) {
 			rs = append(rs, v.(int))
 		}
 
-		// FIXME:
-		// changes := diff.Ints(rs, []int{2, 1, 3})
-		// if len(changes) != 0 {
-		// 	t.Errorf("Execution order is wrong, gets: %+v\n", rs)
-		// }
+		// TODO: incomplete test
 	})
 
 }
@@ -238,8 +231,8 @@ func TestAllShouldWorksAsExpected(t *testing.T) {
 		rs = append(rs, v.(int))
 	}
 
-	changes := diff.Ints(rs, []int{1, 2, 3})
-	if len(changes) != 0 {
+	equal := reflect.DeepEqual([]int{1, 2, 3}, rs)
+	if !equal {
 		t.Errorf("Execution order is wrong, gets: %+v\n", rs)
 	}
 }
@@ -405,8 +398,8 @@ func TestLastShouldWorksAsExpected(t *testing.T) {
 		rs = append(rs, v.(int))
 	}
 
-	changes := diff.Ints(rs, []int{1, 3})
-	if len(changes) != 0 {
+	equal := reflect.DeepEqual([]int{1, 3}, rs)
+	if !equal {
 		t.Errorf("Execution order is wrong, gets: %+v\n", rs)
 	}
 }
