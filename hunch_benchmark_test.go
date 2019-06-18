@@ -2,15 +2,8 @@ package hunch
 
 import (
 	"context"
-	"fmt"
 	"testing"
 )
-
-func BenchmarkBaselineHello(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		fmt.Sprintf("hello")
-	}
-}
 
 func BenchmarkTakeWithFiveExecsThatNeedsOne(b *testing.B) {
 	rootCtx, cancel := context.WithCancel(context.Background())
