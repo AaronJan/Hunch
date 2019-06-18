@@ -1,3 +1,5 @@
+images: Ubuntu
+
 version: "{build}"
 
 build: off
