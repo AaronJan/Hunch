@@ -1,4 +1,4 @@
-images: Ubuntu
+image: Ubuntu
 
 version: "{build}"
 
