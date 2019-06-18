@@ -2,7 +2,7 @@ version: "{build}"
 
 build: off
 
-clone_folder: /usr/hunch
+clone_folder: /usr/go/src/github.com/$username/$project
 
 environment:
   GOPATH: /usr/go/
