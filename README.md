@@ -1,6 +1,8 @@
 <a href="https://github.com/AaronJan/Hunch">
-	<img width="200" src="https://user-images.githubusercontent.com/4630940/59684078-ea9d8c80-920b-11e9-9c99-85051dcb8a04.jpg" alt="Housekeeper" title="Hunch" align="right"/>
+	<img width="160" src="https://user-images.githubusercontent.com/4630940/59684078-ea9d8c80-920b-11e9-9c99-85051dcb8a04.jpg" alt="Housekeeper" title="Hunch" align="right"/>
 </a>
+
+[![codecov](https://codecov.io/gh/AaronJan/Hunch/branch/master/graph/badge.svg)](https://codecov.io/gh/AaronJan/Hunch)
 
 # Hunch
 
