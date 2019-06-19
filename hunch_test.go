@@ -26,178 +26,173 @@ func isSlice(v interface{}) bool {
 	return rv.Kind() == reflect.Slice
 }
 
-func TestTake(t *testing.T) {
-	t.Run("Should works as expected", func(t *testing.T) {
-		t.Parallel()
+func TestTake_ShouldWorksAsExpected(t *testing.T) {
+	t.Parallel()
 
-		rootCtx := context.Background()
-		ch := make(chan MultiReturns)
-		go func() {
-			r, err := Take(
-				rootCtx,
-				3,
-				func(ctx context.Context) (interface{}, error) {
-					time.Sleep(200 * time.Millisecond)
-					return 1, nil
-				},
-				func(ctx context.Context) (interface{}, error) {
-					time.Sleep(100 * time.Millisecond)
-					return 2, nil
-				},
-				func(ctx context.Context) (interface{}, error) {
-					<-time.After(300 * time.Millisecond)
-					return 3, nil
-				},
-			)
+	rootCtx := context.Background()
+	ch := make(chan MultiReturns)
+	go func() {
+		r, err := Take(
+			rootCtx,
+			3,
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(200 * time.Millisecond)
+				return 1, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(100 * time.Millisecond)
+				return 2, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				<-time.After(300 * time.Millisecond)
+				return 3, nil
+			},
+		)
 
-			ch <- MultiReturns{r, err}
-			close(ch)
-		}()
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
 
-		r := <-ch
-		if r.Err != nil {
-			t.Errorf("Gets an error: %v\n", r.Err)
-		}
+	r := <-ch
+	if r.Err != nil {
+		t.Errorf("Gets an error: %v\n", r.Err)
+	}
 
-		rs := []int{}
-		for _, v := range r.Val.([]interface{}) {
-			rs = append(rs, v.(int))
-		}
+	rs := []int{}
+	for _, v := range r.Val.([]interface{}) {
+		rs = append(rs, v.(int))
+	}
 
-		equal := reflect.DeepEqual([]int{2, 1, 3}, rs)
-		if !equal {
-			t.Errorf("Execution order is wrong, gets: %+v\n", rs)
-		}
-	})
-
-	t.Run("Should limit results", func(t *testing.T) {
-		t.Parallel()
-
-		rootCtx := context.Background()
-		ch := make(chan MultiReturns)
-		go func() {
-			r, err := Take(
-				rootCtx,
-				2,
-				func(ctx context.Context) (interface{}, error) {
-					time.Sleep(200 * time.Millisecond)
-					return 1, nil
-				},
-				func(ctx context.Context) (interface{}, error) {
-					time.Sleep(100 * time.Millisecond)
-					return 2, nil
-				},
-				func(ctx context.Context) (interface{}, error) {
-					<-time.After(300 * time.Millisecond)
-					return 3, nil
-				},
-			)
-
-			ch <- MultiReturns{r, err}
-			close(ch)
-		}()
-
-		r := <-ch
-		rs := []int{}
-		for _, v := range r.Val.([]interface{}) {
-			rs = append(rs, v.(int))
-		}
-
-		equal := reflect.DeepEqual([]int{2, 1}, rs)
-		if !equal {
-			t.Errorf("Execution order is wrong, gets: %+v\n", rs)
-		}
-	})
-
-	t.Run("Should cancel tasks when root context canceled",
-		func(t *testing.T) {
-			t.Parallel()
-
-			rootCtx, cancel := context.WithCancel(context.Background())
-			ch := make(chan MultiReturns)
-			go func() {
-				r, err := Take(
-					rootCtx,
-					3,
-					func(ctx context.Context) (interface{}, error) {
-						time.Sleep(100 * time.Millisecond)
-						return 1, nil
-					},
-					func(ctx context.Context) (interface{}, error) {
-						time.Sleep(200 * time.Millisecond)
-						return 2, nil
-					},
-					func(ctx context.Context) (interface{}, error) {
-						select {
-						case <-ctx.Done():
-							return nil, AppError{}
-						case <-time.After(300 * time.Millisecond):
-							return 3, nil
-						}
-					},
-				)
-
-				ch <- MultiReturns{r, err}
-				close(ch)
-			}()
-
-			go func() {
-				time.Sleep(150 * time.Millisecond)
-				cancel()
-			}()
-
-			r := <-ch
-			if !isSlice(r.Val) || len(r.Val.([]interface{})) != 0 {
-				t.Errorf("Return Value should be default, gets: \"%v\"\n", r.Val)
-			}
-			if r.Err == nil {
-				t.Errorf("Should returns an Error, gets `nil`\n")
-			}
-		},
-	)
-
-	// FIXME:
-	t.Run("Sub tasks without delay", func(t *testing.T) {
-		t.Parallel()
-
-		rootCtx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-		ch := make(chan MultiReturns)
-		go func() {
-			r, err := Take(
-				rootCtx,
-				3,
-				func(ctx context.Context) (interface{}, error) {
-					return 1, nil
-				},
-				func(ctx context.Context) (interface{}, error) {
-					return 2, nil
-				},
-				func(ctx context.Context) (interface{}, error) {
-					return 3, nil
-				},
-			)
-
-			ch <- MultiReturns{r, err}
-			close(ch)
-		}()
-
-		r := <-ch
-		if r.Err != nil {
-			t.Errorf("Gets an error: %v\n", r.Err)
-		}
-
-		rs := []int{}
-		for _, v := range r.Val.([]interface{}) {
-			rs = append(rs, v.(int))
-		}
-
-		// TODO: incomplete test
-	})
-
+	equal := reflect.DeepEqual([]int{2, 1, 3}, rs)
+	if !equal {
+		t.Errorf("Execution order is wrong, gets: %+v\n", rs)
+	}
 }
 
-func TestAllShouldWorksAsExpected(t *testing.T) {
+func TestTake_ShouldJustTakeAll(t *testing.T) {
+	t.Parallel()
+
+	rootCtx := context.Background()
+	ch := make(chan MultiReturns)
+	go func() {
+		r, err := Take(
+			rootCtx,
+			100,
+			func(ctx context.Context) (interface{}, error) {
+				return 1, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				return 2, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				return 3, nil
+			},
+		)
+
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
+
+	r := <-ch
+	if r.Err != nil {
+		t.Errorf("Gets an error: %v\n", r.Err)
+	}
+
+	rs := []int{}
+	for _, v := range r.Val.([]interface{}) {
+		rs = append(rs, v.(int))
+	}
+
+	if len(rs) != 3 {
+		t.Errorf("Should return 3 results, but gets: %+v\n", rs)
+	}
+}
+
+func TestTake_ShouldLimitResults(t *testing.T) {
+	t.Parallel()
+
+	rootCtx := context.Background()
+	ch := make(chan MultiReturns)
+	go func() {
+		r, err := Take(
+			rootCtx,
+			2,
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(200 * time.Millisecond)
+				return 1, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(100 * time.Millisecond)
+				return 2, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				<-time.After(300 * time.Millisecond)
+				return 3, nil
+			},
+		)
+
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
+
+	r := <-ch
+	rs := []int{}
+	for _, v := range r.Val.([]interface{}) {
+		rs = append(rs, v.(int))
+	}
+
+	equal := reflect.DeepEqual([]int{2, 1}, rs)
+	if !equal {
+		t.Errorf("Execution order is wrong, gets: %+v\n", rs)
+	}
+}
+
+func TestTake_ShouldCancelWhenRootCanceled(t *testing.T) {
+	t.Parallel()
+
+	rootCtx, cancel := context.WithCancel(context.Background())
+	ch := make(chan MultiReturns)
+	go func() {
+		r, err := Take(
+			rootCtx,
+			3,
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(100 * time.Millisecond)
+				return 1, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(200 * time.Millisecond)
+				return 2, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				select {
+				case <-ctx.Done():
+					return nil, AppError{}
+				case <-time.After(300 * time.Millisecond):
+					return 3, nil
+				}
+			},
+		)
+
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
+
+	go func() {
+		time.Sleep(150 * time.Millisecond)
+		cancel()
+	}()
+
+	r := <-ch
+	if !isSlice(r.Val) || len(r.Val.([]interface{})) != 0 {
+		t.Errorf("Return Value should be default, gets: \"%v\"\n", r.Val)
+	}
+	if r.Err == nil {
+		t.Errorf("Should returns an Error, gets `nil`\n")
+	}
+}
+
+func TestAll_ShouldWorksAsExpected(t *testing.T) {
 	t.Parallel()
 
 	rootCtx := context.Background()
@@ -239,7 +234,7 @@ func TestAllShouldWorksAsExpected(t *testing.T) {
 	}
 }
 
-func TestAllWhenOutOfOrder(t *testing.T) {
+func TestAll_WhenOutOfOrder(t *testing.T) {
 	t.Parallel()
 
 	rootCtx := context.Background()
@@ -281,7 +276,7 @@ func TestAllWhenOutOfOrder(t *testing.T) {
 	}
 }
 
-func TestAllWhenRootCtxCanceled(t *testing.T) {
+func TestAll_WhenRootCtxCanceled(t *testing.T) {
 	t.Parallel()
 
 	rootCtx, cancel := context.WithCancel(context.Background())
@@ -325,7 +320,7 @@ func TestAllWhenRootCtxCanceled(t *testing.T) {
 	}
 }
 
-func TestAllWhenAnySubFunctionFailed(t *testing.T) {
+func TestAll_WhenAnySubFunctionFailed(t *testing.T) {
 	t.Parallel()
 
 	rootCtx, cancel := context.WithCancel(context.Background())
@@ -365,7 +360,7 @@ func TestAllWhenAnySubFunctionFailed(t *testing.T) {
 	}
 }
 
-func TestRetryWithNoFailure(t *testing.T) {
+func TestRetry_WithNoFailure(t *testing.T) {
 	t.Parallel()
 
 	times := 0
@@ -405,7 +400,7 @@ func TestRetryWithNoFailure(t *testing.T) {
 	}
 }
 
-func TestLastShouldWorksAsExpected(t *testing.T) {
+func TestLast_ShouldWorksAsExpected(t *testing.T) {
 	t.Parallel()
 
 	rootCtx := context.Background()
@@ -448,7 +443,7 @@ func TestLastShouldWorksAsExpected(t *testing.T) {
 	}
 }
 
-func TestWaterfallShouldWorksAsExpected(t *testing.T) {
+func TestWaterfall_ShouldWorksAsExpected(t *testing.T) {
 	t.Parallel()
 
 	rootCtx := context.Background()
@@ -486,101 +481,99 @@ func TestWaterfallShouldWorksAsExpected(t *testing.T) {
 	}
 }
 
-func TestRetry(t *testing.T) {
-	t.Run("Should returns results on success", func(t *testing.T) {
-		t.Parallel()
+func TestRetry_ShouldReturnsOnSuccess(t *testing.T) {
+	t.Parallel()
 
-		rootCtx := context.Background()
-		ch := make(chan MultiReturns)
-		go func() {
-			r, err := Retry(
-				rootCtx,
-				3,
-				func(ctx context.Context) (interface{}, error) {
-					time.Sleep(200 * time.Millisecond)
+	rootCtx := context.Background()
+	ch := make(chan MultiReturns)
+	go func() {
+		r, err := Retry(
+			rootCtx,
+			3,
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(200 * time.Millisecond)
+				return 1, nil
+			},
+		)
+
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
+
+	r := <-ch
+	if r.Err != nil {
+		t.Errorf("Gets an error: %v\n", r.Err)
+	}
+
+	if r.Val != 1 {
+		t.Errorf("Should gets `1`, gets: %+v instead\n", r.Val)
+	}
+}
+
+func TestRetry_ShouldReturnsAfterFailingSeveralTimes(t *testing.T) {
+	t.Parallel()
+
+	var times int32
+	rootCtx := context.Background()
+	ch := make(chan MultiReturns)
+	go func() {
+		r, err := Retry(
+			rootCtx,
+			3,
+			func(ctx context.Context) (interface{}, error) {
+				atomic.AddInt32(&times, 1)
+				if atomic.LoadInt32(&times) >= 2 {
 					return 1, nil
-				},
-			)
+				}
+				return nil, fmt.Errorf("err")
+			},
+		)
 
-			ch <- MultiReturns{r, err}
-			close(ch)
-		}()
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
 
-		r := <-ch
-		if r.Err != nil {
-			t.Errorf("Gets an error: %v\n", r.Err)
-		}
+	r := <-ch
+	if r.Err != nil {
+		t.Errorf("Gets an error: %v\n", r.Err)
+	}
 
-		if r.Val != 1 {
-			t.Errorf("Should gets `1`, gets: %+v instead\n", r.Val)
-		}
-	})
+	if times != 2 {
+		t.Errorf("Should tried 2 times, instead of %v\n", times)
+	}
 
-	t.Run("Should returns results after failing several times", func(t *testing.T) {
-		t.Parallel()
+	if r.Val != 1 {
+		t.Errorf("Should gets `1`, gets: %+v instead\n", r.Val)
+	}
+}
 
-		var times int32
-		rootCtx := context.Background()
-		ch := make(chan MultiReturns)
-		go func() {
-			r, err := Retry(
-				rootCtx,
-				3,
-				func(ctx context.Context) (interface{}, error) {
-					atomic.AddInt32(&times, 1)
-					if atomic.LoadInt32(&times) >= 2 {
-						return 1, nil
-					}
-					return nil, fmt.Errorf("err")
-				},
-			)
+func TestRetry_ShouldKeepRetrying(t *testing.T) {
+	t.Parallel()
 
-			ch <- MultiReturns{r, err}
-			close(ch)
-		}()
+	var times int32
+	rootCtx := context.Background()
+	ch := make(chan MultiReturns)
+	go func() {
 
-		r := <-ch
-		if r.Err != nil {
-			t.Errorf("Gets an error: %v\n", r.Err)
-		}
+		r, err := Retry(
+			rootCtx,
+			3,
+			func(ctx context.Context) (interface{}, error) {
+				atomic.AddInt32(&times, 1)
+				return nil, fmt.Errorf("err")
+			},
+		)
 
-		if times != 2 {
-			t.Errorf("Should tried 2 times, instead of %v\n", times)
-		}
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
 
-		if r.Val != 1 {
-			t.Errorf("Should gets `1`, gets: %+v instead\n", r.Val)
-		}
-	})
+	r := <-ch
+	if r.Err == nil {
+		t.Errorf("Should gets an error")
+	}
 
-	t.Run("Should keep retrying until the limit is reached", func(t *testing.T) {
-		t.Parallel()
-
-		var times int32
-		rootCtx := context.Background()
-		ch := make(chan MultiReturns)
-		go func() {
-
-			r, err := Retry(
-				rootCtx,
-				3,
-				func(ctx context.Context) (interface{}, error) {
-					atomic.AddInt32(&times, 1)
-					return nil, fmt.Errorf("err")
-				},
-			)
-
-			ch <- MultiReturns{r, err}
-			close(ch)
-		}()
-
-		r := <-ch
-		if r.Err == nil {
-			t.Errorf("Should gets an error")
-		}
-
-		if times != 3 {
-			t.Errorf("Should tried 3 times, instead of: %+v\n", times)
-		}
-	})
+	if times != 3 {
+		t.Errorf("Should tried 3 times, instead of: %+v\n", times)
+	}
 }
