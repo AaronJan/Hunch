@@ -2,8 +2,13 @@
 	<img width="160" src="https://user-images.githubusercontent.com/4630940/59684078-ea9d8c80-920b-11e9-9c99-85051dcb8a04.jpg" alt="Housekeeper" title="Hunch" align="right"/>
 </a>
 
+![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/aaronjan/hunch.svg)
 [![Build status](https://ci.appveyor.com/api/projects/status/co97gxwpcewrebip/branch/master?svg=true)](https://ci.appveyor.com/project/AaronJan/hunch/branch/master)
 [![codecov](https://codecov.io/gh/AaronJan/Hunch/branch/master/graph/badge.svg)](https://codecov.io/gh/AaronJan/Hunch)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aaronjan/hunch)](https://goreportcard.com/report/github.com/aaronjan/hunch)
+![GitHub](https://img.shields.io/github/license/aaronjan/hunch.svg)
+![GitHub issues](https://img.shields.io/github/issues/aaronjan/hunch.svg)
+[![GoDoc](https://godoc.org/github.com/aaronjan/hunch?status.svg)](https://godoc.org/github.com/aaronjan/hunch)
 
 # Hunch
 
