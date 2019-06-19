@@ -7,7 +7,6 @@
 [![codecov](https://codecov.io/gh/AaronJan/Hunch/branch/master/graph/badge.svg)](https://codecov.io/gh/AaronJan/Hunch)
 [![Go Report Card](https://goreportcard.com/badge/github.com/aaronjan/hunch)](https://goreportcard.com/report/github.com/aaronjan/hunch)
 ![GitHub](https://img.shields.io/github/license/aaronjan/hunch.svg)
-![GitHub issues](https://img.shields.io/github/issues/aaronjan/hunch.svg)
 [![GoDoc](https://godoc.org/github.com/aaronjan/hunch?status.svg)](https://godoc.org/github.com/aaronjan/hunch)
 
 # Hunch
