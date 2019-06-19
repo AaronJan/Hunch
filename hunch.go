@@ -43,7 +43,7 @@ func sortIdxVals(iVals []IndexedValue) []IndexedValue {
 	sort.SliceStable(
 		sorted,
 		func(i, j int) bool {
-			return iVals[i].Index < iVals[j].Index
+			return sorted[i].Index < sorted[j].Index
 		},
 	)
 

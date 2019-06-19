@@ -239,6 +239,48 @@ func TestAllShouldWorksAsExpected(t *testing.T) {
 	}
 }
 
+func TestAllWhenOutOfOrder(t *testing.T) {
+	t.Parallel()
+
+	rootCtx := context.Background()
+	ch := make(chan MultiReturns)
+	go func() {
+		r, err := All(
+			rootCtx,
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(200 * time.Millisecond)
+				return 1, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(300 * time.Millisecond)
+				return 2, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				<-time.After(100 * time.Millisecond)
+				return 3, nil
+			},
+		)
+
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
+
+	r := <-ch
+	if r.Err != nil {
+		t.Errorf("Gets an error: %v\n", r.Err)
+	}
+
+	rs := []int{}
+	for _, v := range r.Val.([]interface{}) {
+		rs = append(rs, v.(int))
+	}
+
+	equal := reflect.DeepEqual([]int{1, 2, 3}, rs)
+	if !equal {
+		t.Errorf("Execution order is wrong, gets: %+v\n", rs)
+	}
+}
+
 func TestAllWhenRootCtxCanceled(t *testing.T) {
 	t.Parallel()
 
