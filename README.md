@@ -51,7 +51,7 @@ $ go mod tidy
 ```go
 type Executable func(context.Context) (interface{}, error)
 
-type ExecutableInSequent func(context.Context, interface{}) (interface{}, error)
+type ExecutableInSequence func(context.Context, interface{}) (interface{}, error)
 ```
 
 ### API
@@ -161,10 +161,10 @@ fmt.Println(r, err)
 #### Waterfall
 
 ```go
-func Waterfall(parentCtx context.Context, execs ...ExecutableInSequent) (interface{}, error)
+func Waterfall(parentCtx context.Context, execs ...ExecutableInSequence) (interface{}, error)
 ```
 
-Waterfall runs ExecutableInSequents one by one, passing previous result to next Executable as input. When an error occurred, it stop the process then returns the error. When the parent Context canceled, it returns the `Err()` of it immediately.
+Waterfall runs `ExecutableInSequence`s one by one, passing previous result to next Executable as input. When an error occurred, it stop the process then returns the error. When the parent Context canceled, it returns the `Err()` of it immediately.
 
 ##### Examples
 

@@ -12,8 +12,8 @@ import (
 // It can be used with several functions.
 type Executable func(context.Context) (interface{}, error)
 
-// ExecutableInSequent represents one of a sequence of logic blocks.
-type ExecutableInSequent func(context.Context, interface{}) (interface{}, error)
+// ExecutableInSequence represents one of a sequence of logic blocks.
+type ExecutableInSequence func(context.Context, interface{}) (interface{}, error)
 
 // IndexedValue stores the output of Executables,
 // along with the index of the source Executable for ordering.
@@ -253,11 +253,11 @@ func Retry(parentCtx context.Context, retries int, fn Executable) (interface{}, 
 	}
 }
 
-// Waterfall runs ExecutableInSequents one by one,
+// Waterfall runs `ExecutableInSequence`s one by one,
 // passing previous result to next Executable as input.
 // When an error occurred, it stop the process then returns the error.
 // When the parent Context canceled, it returns the `Err()` of it immediately.
-func Waterfall(parentCtx context.Context, execs ...ExecutableInSequent) (interface{}, error) {
+func Waterfall(parentCtx context.Context, execs ...ExecutableInSequence) (interface{}, error) {
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
