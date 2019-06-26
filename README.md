@@ -85,7 +85,7 @@ r, err := hunch.All(
 )
 
 fmt.Println(r, err)
-// output:
+// Output:
 // [1 2 3] <nil>
 ```
 
@@ -120,7 +120,7 @@ r, err := hunch.Take(
 )
 
 fmt.Println(r, err)
-// output:
+// Output:
 // [3 2] <nil>
 ```
 
@@ -135,6 +135,7 @@ Last returns the last `num` values outputted by the Executables.
 ##### Examples
 
 ```go
+ctx := context.Background()
 r, err := hunch.Last(
     ctx,
     // Only need the last 2 values.
@@ -154,7 +155,7 @@ r, err := hunch.Last(
 )
 
 fmt.Println(r, err)
-// output:
+// Output:
 // [2 1] <nil>
 ```
 
@@ -169,21 +170,22 @@ Waterfall runs `ExecutableInSequence`s one by one, passing previous result to ne
 ##### Examples
 
 ```go
+ctx := context.Background()
 r, err := hunch.Waterfall(
     ctx,
     func(ctx context.Context, n interface{}) (interface{}, error) {
         return 1, nil
     },
     func(ctx context.Context, n interface{}) (interface{}, error) {
-        return n + 1, nil
+        return n.(int) + 1, nil
     },
     func(ctx context.Context, n interface{}) (interface{}, error) {
-        return n + 1, nil
+        return n.(int) + 1, nil
     },
 )
 
 fmt.Println(r, err)
-// output:
+// Output:
 // 3 <nil>
 ```
 
@@ -198,15 +200,30 @@ Retry attempts to get a value from an Executable instead of an Error. It will ke
 ##### Examples
 
 ```go
+count := 0
+getStuffFromAPI := func() (int, error) {
+    if count == 5 {
+        return 1, nil
+    }
+    count++
+
+    return 0, fmt.Errorf("timeout")
+}
+
+ctx := context.Background()
 r, err := hunch.Retry(
     ctx,
     10,
     func(ctx context.Context) (interface{}, error) {
-        rs, err := api.GetResults()
+        rs, err := getStuffFromAPI()
 
         return rs, err
     },
 )
+
+fmt.Println(r, err, count)
+// Output:
+// 1 <nil> 5
 ```
 
 ## Credits
