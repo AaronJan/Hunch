@@ -147,6 +147,42 @@ func TestTake_ShouldLimitResults(t *testing.T) {
 	}
 }
 
+func TestTake_ShouldCancelWhenOneExecutableReturnedError(t *testing.T) {
+	t.Parallel()
+
+	rootCtx := context.Background()
+	ch := make(chan MultiReturns)
+	go func() {
+		r, err := Take(
+			rootCtx,
+			3,
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(100 * time.Millisecond)
+				return 1, nil
+			},
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(200 * time.Millisecond)
+				return 0, AppError{}
+			},
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(200 * time.Millisecond)
+				return 3, nil
+			},
+		)
+
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
+
+	r := <-ch
+	if !isSlice(r.Val) || len(r.Val.([]interface{})) != 0 {
+		t.Errorf("Return Value should be default, gets: \"%v\"\n", r.Val)
+	}
+	if r.Err == nil {
+		t.Errorf("Should returns an Error, gets `nil`\n")
+	}
+}
+
 func TestTake_ShouldCancelWhenRootCanceled(t *testing.T) {
 	t.Parallel()
 
