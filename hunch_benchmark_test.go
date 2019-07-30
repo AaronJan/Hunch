@@ -5,6 +5,21 @@ import (
 	"testing"
 )
 
+func BenchmarkTakeWithOnlyOne(b *testing.B) {
+	rootCtx := context.Background()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Take(
+			rootCtx,
+			1,
+			func(ctx context.Context) (interface{}, error) {
+				return 1, nil
+			},
+		)
+	}
+}
+
 func BenchmarkTakeWithFiveExecsThatNeedsOne(b *testing.B) {
 	rootCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
