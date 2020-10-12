@@ -283,6 +283,7 @@ func Waterfall(parentCtx context.Context, execs ...ExecutableInSequence) (interf
 		select {
 
 		case <-parentCtx.Done():
+			// Stub comment to fix a test coverage bug.
 			return nil, parentCtx.Err()
 
 		case err := <-fail:
