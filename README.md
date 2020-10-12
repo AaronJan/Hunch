@@ -3,7 +3,7 @@
 </a>
 
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/aaronjan/hunch.svg)
-[![Build status](https://ci.appveyor.com/api/projects/status/co97gxwpcewrebip/branch/master?svg=true)](https://ci.appveyor.com/project/AaronJan/hunch/branch/master)
+![Build status](https://github.com/aaronjan/hunch/workflows/Go/badge.svg?branch=master)
 [![codecov](https://codecov.io/gh/AaronJan/Hunch/branch/master/graph/badge.svg)](https://codecov.io/gh/AaronJan/Hunch)
 [![Go Report Card](https://goreportcard.com/badge/github.com/aaronjan/hunch)](https://goreportcard.com/report/github.com/aaronjan/hunch)
 ![GitHub](https://img.shields.io/github/license/aaronjan/hunch.svg)
