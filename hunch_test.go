@@ -613,3 +613,33 @@ func TestRetry_ShouldKeepRetrying(t *testing.T) {
 		t.Errorf("Should tried 3 times, instead of: %+v\n", times)
 	}
 }
+
+func TestRetry_WhenRootCtxCanceled(t *testing.T) {
+	t.Parallel()
+
+	rootCtx, cancel := context.WithCancel(context.Background())
+	ch := make(chan MultiReturns)
+	go func() {
+
+		r, err := Retry(
+			rootCtx,
+			3,
+			func(ctx context.Context) (interface{}, error) {
+				time.Sleep(50 * time.Millisecond)
+				return nil, fmt.Errorf("err")
+			},
+		)
+
+		ch <- MultiReturns{r, err}
+		close(ch)
+	}()
+	go func() {
+		time.Sleep(10 * time.Millisecond)
+		cancel()
+	}()
+
+	r := <-ch
+	if r.Err == nil {
+		t.Errorf("Should gets an error")
+	}
+}

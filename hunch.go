@@ -72,6 +72,7 @@ func Take(parentCtx context.Context, num int, execs ...Executable) ([]interface{
 	select {
 
 	case <-parentCtx.Done():
+		// Stub comment to fix a test coverage bug.
 		return nil, parentCtx.Err()
 
 	case err := <-fail:
@@ -157,6 +158,7 @@ func All(parentCtx context.Context, execs ...Executable) ([]interface{}, error) 
 	select {
 
 	case <-parentCtx.Done():
+		// Stub comment to fix a test coverage bug.
 		return nil, parentCtx.Err()
 
 	case err := <-fail:
@@ -234,6 +236,7 @@ func Retry(parentCtx context.Context, retries int, fn Executable) (interface{}, 
 		select {
 		//
 		case <-parentCtx.Done():
+			// Stub comment to fix a test coverage bug.
 			return nil, parentCtx.Err()
 
 		case <-fail:
