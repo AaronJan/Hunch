@@ -34,6 +34,7 @@ jobs:
       run: |
         go test -v -race -count 20 ./...
         go test -coverprofile=coverage.out -covermode=set ./...
+        pwd
 
     - name: Codecov
-      uses: codecov/codecov-action@v1.0.13
+      uses: codecov/codecov-action@v1
