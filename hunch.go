@@ -67,7 +67,7 @@ func Take(parentCtx context.Context, num int, execs ...Executable) ([]interface{
 
 	fail := make(chan error, 1)
 	success := make(chan []IndexedValue, 1)
-	go takeUntilEnough(fail, success, num, output)
+	go takeUntilEnough(fail, success, min(len(execs), num), output)
 
 	select {
 
@@ -116,7 +116,7 @@ func runExecs(ctx context.Context, output chan<- IndexedExecutableOutput, execs 
 }
 
 func takeUntilEnough(fail chan error, success chan []IndexedValue, num int, output chan IndexedExecutableOutput) {
-	var uVals []IndexedValue
+	uVals := make([]IndexedValue, num)
 
 	enough := false
 	outputCount := 0
@@ -131,8 +131,8 @@ func takeUntilEnough(fail chan error, success chan []IndexedValue, num int, outp
 			continue
 		}
 
+		uVals[outputCount] = r.Value
 		outputCount++
-		uVals = append(uVals, r.Value)
 
 		if outputCount == num {
 			enough = true
@@ -303,4 +303,11 @@ func Waterfall(parentCtx context.Context, execs ...ExecutableInSequence) (interf
 			continue
 		}
 	}
+}
+
+func min(x, y int) int {
+	if x > y {
+		return y
+	}
+	return x
 }
