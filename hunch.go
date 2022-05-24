@@ -100,6 +100,7 @@ func runExecs(ctx context.Context, output chan<- IndexedExecutableOutput, execs 
 					IndexedValue{i, nil},
 					err,
 				}
+				wg.Done()
 				return
 			}
 
